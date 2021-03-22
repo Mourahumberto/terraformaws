@@ -1,10 +1,5 @@
-# Terraform AWS VPC
-This module configures your Terraform organization and workspace.  
-Authors: David Wright (dwright@hashicorp.com) and Tony Vattahil (tonynv@amazon.com)
-
-# Install Terraform
-To deploy this module, do the following:
-Install Terraform. (See [Install Terraform](https://learn.hashicorp.com/tutorials/terraform/install-cli) for a tutorial.) 
+# Terraform AWS
+Neste Repo estarei criando uma infraestrutura na AWS uktilizando módulos do terraform.
 
 # Configure AWS CLI 
 > ~/.aws/credentials (Linux & Mac)
@@ -14,48 +9,17 @@ Install Terraform. (See [Install Terraform](https://learn.hashicorp.com/tutorial
 aws_access_key_id=AKIAIOSFODNN7EXAMPLE
 aws_secret_access_key=wJalrXUtnSAMPLESECRETKEY
 ```
-See [Guide](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html) for more info
+Veja [Guide](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html) para maiks informações
 
-## Clone the repo (requires git client)
+### No local de execução
 
-Clone the **aws-quickstart/terraform-aws-vpc** repository.
-
-`git clone https://github.com/aws-quickstart/terraform-aws-vpc`
-
-Change directory to the root directory.
-
-`cd terraform-aws-vpc/`
-
-Change to deploy directory
-
-`cd deploy`
-
-### Local execution
-
-Initialize terraform module
+Inicialize o módulo do terraform
 
 `terraform init`
 
-Run terraform apply
+Execute terraform apply
 
 `terraform apply` 
 
-### Remote execution using Terraform Cloud 
-
-`terraform init -backend-config=/path/to/backend.hcl`
-
-Example: backend.hcl
-
-```
-terraform {
-  backend "remote" {
-    organization = "your-organization"
-
-    workspaces {
-      name = "your-workspace"
-    } 
-  } 
-}
-```
 
 
