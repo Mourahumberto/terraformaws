@@ -9,7 +9,7 @@ Neste Repo estarei criando uma infraestrutura na AWS uktilizando módulos do ter
 aws_access_key_id=AKIAIOSFODNN7EXAMPLE
 aws_secret_access_key=wJalrXUtnSAMPLESECRETKEY
 ```
-Veja [Guide](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html) para maiks informações
+Veja o [Guia](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html) para mais informações
 
 ### No local de execução
 
