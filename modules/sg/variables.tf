@@ -5,9 +5,10 @@ variable "region" {
 
 variable "project" {
   description = "Project DevOps"
-  default     = "devops"
+  default     = "project-vpc"
 }
-
+variable "vpc_id" {
+}
 variable "ips_inbound" {
   description = "Ips from BPP"
   type        = list(string)

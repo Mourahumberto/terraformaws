@@ -1,3 +1,3 @@
-# output "vpc_id" {
-#   value = module.tfm-aws-vpc.vpc_id
-# }
+output "vpc_id" {
+  value = module.tfm_vpc.vpc_id
+}

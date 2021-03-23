@@ -5,7 +5,7 @@
 resource "aws_security_group" "public_sg" {
   name        = "public-sg"
   description = "Public Host"
-  vpc_id = "default"
+  vpc_id = var.vpc_id
 
   egress {
     from_port   = 0
