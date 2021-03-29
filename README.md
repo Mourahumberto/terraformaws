@@ -1,7 +1,7 @@
 # Terraform AWS
 Neste Repo estarei criando uma infraestrutura na AWS uktilizando módulos do terraform.
 
-# Configure AWS CLI 
+## Configure AWS CLI 
 > ~/.aws/credentials (Linux & Mac)
 
 ```
@@ -23,4 +23,4 @@ Execute terraform apply
 `terraform apply "tfplan"` 
 
 
-
+## EXPLICANDO CADA MÓDULO
