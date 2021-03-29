@@ -14,12 +14,13 @@ Veja o [Guia](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-pro
 ### No local de execução
 
 Inicialize o módulo do terraform
-
 `terraform init`
 
-Execute terraform apply
+Criando um plano
+`terraform plan -out tfplan`
 
-`terraform apply` 
+Execute terraform apply
+`terraform apply "tfplan"` 
 
 
 
