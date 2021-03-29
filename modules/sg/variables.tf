@@ -10,7 +10,7 @@ variable "project" {
 variable "vpc_id" {
 }
 variable "ips_inbound" {
-  description = "Ips from BPP"
+  description = "Ips from public access"
   type        = list(string)
   default = ["186.207.198.33/32"]
 }

@@ -15,7 +15,7 @@ resource "aws_security_group" "public_sg" {
   }
 
   tags = {
-    Name = "public-in-bpp"
+    Name = "public-access"
   }
 }
 
