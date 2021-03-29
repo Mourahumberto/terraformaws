@@ -16,16 +16,29 @@ module "tfm_vpc" {
   public_b_cidr = "10.10.2.0/24"
   public_c_cidr = "10.10.3.0/24"
 
-# private_a_cidr = "10.10.4.0/24"
-# private_b_cidr = "10.10.5.0/24"
-# private_c_cidr = "10.10.6.0/24"
+ private_a_cidr = "10.10.4.0/24"
+ private_b_cidr = "10.10.5.0/24"
+ private_c_cidr = "10.10.6.0/24"
 
-# data_a_cidr = "10.10.7.0/24"
-# data_b_cidr = "10.10.8.0/24"
-# data_c_cidr = "10.10.9.0/24"
+ data_a_cidr = "10.10.7.0/24"
+ data_b_cidr = "10.10.8.0/24"
+ data_c_cidr = "10.10.9.0/24"
 }
 
 module "tfm-aws-sg" {
   source            = "./modules/sg"
   vpc_id = module.tfm_vpc.vpc_id
+}
+
+module "ec2_bastion" {
+  source = "./modules/ec2"
+  name = "bastion"
+  ami = "ami-04d29b6f966df1537"
+  instance_type = "t2.micro"
+  ec2_count = 1
+  sg = [module.tfm-aws-sg.public_sg]
+  subnet_id = module.tfm_vpc.public_a.id
+#  user_data = abspath("./ec2_userData/bastion.txt")
+
+#  appKey = devops
 }

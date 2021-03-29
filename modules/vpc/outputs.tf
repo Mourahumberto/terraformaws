@@ -26,10 +26,6 @@ output "vpc_id" {
   value = aws_vpc.main_vpc.id
 }
 
-# output "route_table_private_ids" {
-#   value = {
-#     private_a = "${aws_route_table.private_a.id}"
-#     private_b = "${aws_route_table.private_b.id}"
-#     private_c = "${aws_route_table.private_c.id}"
-#   }
-# }
+output "public_a" {
+    value = aws_subnet.public_a
+}
