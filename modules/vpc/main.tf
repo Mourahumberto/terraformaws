@@ -1,310 +1,102 @@
-#############
-# VPC Configs
-#############
+resource "aws_vpc" "main" {
 
-resource "aws_vpc" "main_vpc" {
-  cidr_block           = var.vpc_cidr
+  cidr_block           = var.cidr_block
   enable_dns_hostnames = true
-  enable_dns_support   = true
+
+  tags = var.tags
+}
+
+resource "aws_subnet" "private" {
+  count                   = length(var.private_subnets)
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = var.private_subnets[count.index]
+  availability_zone       = var.azs[count.index]
+  map_public_ip_on_launch = false
 
   tags = {
-    Name = "project-vpc"
+    Name = "private-subnet-${count.index}"
   }
 }
 
-####################################
-# Internet Gateway to Public Subnets
-####################################
+resource "aws_subnet" "public" {
+  count                   = length(var.public_subnets)
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = var.public_subnets[count.index]
+  availability_zone       = var.azs[count.index]
+  map_public_ip_on_launch = true
 
+  tags = {
+    Name = "public-subnet-${count.index}"
+  }
+}
+
+### PRIVATE ROUTE TABLE ###
+
+resource "aws_route_table" "private" {
+  vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.nat.id
+  }
+
+  depends_on = [aws_nat_gateway.nat]
+}
+
+resource "aws_route_table_association" "private_assoc" {
+  count          = length(var.public_subnets)
+  subnet_id      = aws_subnet.private[count.index].id
+  route_table_id = aws_route_table.private.id
+}
+
+### PRIVATE ROUTE TABLE ###
+
+
+### PUBLIC ROUTE TABLE ###
+
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.igw.id
+  }
+
+  depends_on = [aws_internet_gateway.igw]
+}
+
+resource "aws_route_table_association" "public_assoc" {
+  count          = length(var.public_subnets)
+  subnet_id      = aws_subnet.public[count.index].id
+  route_table_id = aws_route_table.public.id
+}
+
+### PUBLIC ROUTE TABLE ###
+
+
+### IGW ###
 resource "aws_internet_gateway" "igw" {
-  vpc_id = aws_vpc.main_vpc.id
-
-  tags = {
-    Name = "project-igw"
-  }
-
+  vpc_id = aws_vpc.main.id
 }
+### IGW ###
 
-############################
-# Elastic IP to NAT Gateways
-############################
 
-resource "aws_eip" "vpc_eip_1" {
+### EIP ###
+resource "aws_eip" "nat" {
   vpc        = true
-  tags = {
-    Name = "nat-a-eip"
-  }
+  depends_on = [aws_internet_gateway.igw]
 }
+### EIP ###
 
-resource "aws_eip" "vpc_eip_2" {
-  vpc        = true
-  
-  tags = {
-    Name = "nat-b-eip"
-  }
-}
 
-resource "aws_eip" "vpc_eip_3" {
-  vpc        = true
-  tags = {
-    Name = "nat-c-eip"
-  }
-}
-
-################################
-# NAT Gateway to Public Subnets
-################################
-
-resource "aws_nat_gateway" "nat_a" {
-  allocation_id = aws_eip.vpc_eip_1.id
-  subnet_id     = aws_subnet.public_a.id
-
+### NAT GATEWAY ###
+resource "aws_nat_gateway" "nat" {
+  subnet_id     = aws_subnet.public[0].id
+  allocation_id = aws_eip.nat.id
 
   tags = {
-    Name = "nat-gateway-a"
+    Name = "default nat gateway"
   }
-}
 
-resource "aws_nat_gateway" "nat_b" {
-  allocation_id = aws_eip.vpc_eip_2.id
-  subnet_id     = aws_subnet.public_b.id
-
-  tags = {
-    Name = "nat-gateway-b"
-  }
-}
-
-resource "aws_nat_gateway" "nat_c" {
-  allocation_id = aws_eip.vpc_eip_3.id
-  subnet_id     = aws_subnet.public_c.id
-
-  tags = {
-    Name = "nat-gateway-c"
-  }
-}
-
-################
-# Public Subnets
-################
-
-resource "aws_subnet" "public_a" {
-  vpc_id                  = aws_vpc.main_vpc.id
-  cidr_block              = var.public_a_cidr
-  map_public_ip_on_launch = true
-  availability_zone       = var.az_a
-
-  tags = {
-    Name = "public-subnet-1a"
-  }
-}
-
-resource "aws_subnet" "public_b" {
-  vpc_id                  = aws_vpc.main_vpc.id
-  cidr_block              = var.public_b_cidr
-  map_public_ip_on_launch = true
-  availability_zone       = var.az_b
-
-  tags = {
-    Name = "public-subnet-1b"
-  }
-}
-
-resource "aws_subnet" "public_c" {
-  vpc_id                  = aws_vpc.main_vpc.id
-  cidr_block              = var.public_c_cidr
-  map_public_ip_on_launch = true
-  availability_zone       = var.az_c
-
-  tags = {
-    Name = "public-subnet-1c"
-  }
-}
-
-#################
-# Private Subnets
-#################
-
-resource "aws_subnet" "private_a" {
-  vpc_id            = aws_vpc.main_vpc.id
-  cidr_block        = var.private_a_cidr
-  availability_zone = var.az_a
-
-  tags = {
-    Name = "private-subnet-1a"
-  }
-}
-
-resource "aws_subnet" "private_b" {
-  vpc_id            = aws_vpc.main_vpc.id
-  cidr_block        = var.private_b_cidr
-  availability_zone = var.az_b
-
-  tags = {
-    Name = "private-subnet-1b"
-  }
-}
-
-resource "aws_subnet" "private_c" {
-  vpc_id            = aws_vpc.main_vpc.id
-  cidr_block        = var.private_c_cidr
-  availability_zone = var.az_c
-
-  tags = {
-    Name = "private-subnet-1c"
-  }
-}
-
-##############
-# Data Subnets
-##############
-
-resource "aws_subnet" "data_a" {
-  vpc_id            = aws_vpc.main_vpc.id
-  cidr_block        = var.data_a_cidr
-  availability_zone = var.az_a
-
-  tags = {
-    Name = "data-subnet-1a"
-  }
-}
-
-resource "aws_subnet" "data_b" {
-  vpc_id            = aws_vpc.main_vpc.id
-  cidr_block        = var.data_b_cidr
-  availability_zone = var.az_b
-
-  tags = {
-    Name = "data-subnet-1b"
-  }
-}
-
-resource "aws_subnet" "data_c" {
-  vpc_id            = aws_vpc.main_vpc.id
-  cidr_block        = var.data_c_cidr
-  availability_zone = var.az_c
-
-  tags = {
-    Name = "data-subnet-1c"
-  }
-}
-
-###############################
-# Route Table to Public Subnets
-###############################
-
-##################################
-# New feature Add main_route_table
-##################################
-
-resource "aws_route" "internet_access" {
-  route_table_id         = aws_vpc.main_vpc.main_route_table_id
-  destination_cidr_block = "0.0.0.0/0"
-  gateway_id             = aws_internet_gateway.igw.id
-}
-
-###############################
-# Association to Public Subnets
-###############################
-
-resource "aws_route_table_association" "public_a" {
-  subnet_id      = aws_subnet.public_a.id
-  route_table_id = aws_vpc.main_vpc.main_route_table_id
-}
-
-resource "aws_route_table_association" "public_b" {
-  subnet_id      = aws_subnet.public_b.id
-  route_table_id = aws_vpc.main_vpc.main_route_table_id
-}
-
-resource "aws_route_table_association" "public_c" {
-  subnet_id      = aws_subnet.public_c.id
-  route_table_id = aws_vpc.main_vpc.main_route_table_id
-}
-
-################################
-# Route Table to Private Subnets 
-################################
-
-resource "aws_route_table" "private_a" {
-  vpc_id = aws_vpc.main_vpc.id
-
-  tags = {
-    Name = "private-rt-a"
-  }
-}
-
-resource "aws_route_table" "private_b" {
-  vpc_id = aws_vpc.main_vpc.id
-
-  tags = {
-    Name = "-private-rt-b"
-  }
-}
-
-resource "aws_route_table" "private_c" {
-  vpc_id = aws_vpc.main_vpc.id
-
-  tags = {
-    Name = "private-rt-c"
-  }
-}
-
-####################################
-# Routes from Private Subnets to NAT
-####################################
-
-resource "aws_route" "private_a" {
-  route_table_id         = aws_route_table.private_a.id
-  destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id         = aws_nat_gateway.nat_a.id
-}
-
-resource "aws_route" "private_b" {
-  route_table_id         = aws_route_table.private_b.id
-  destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id         = aws_nat_gateway.nat_b.id
-}
-
-resource "aws_route" "private_c" {
-  route_table_id         = aws_route_table.private_c.id
-  destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id         = aws_nat_gateway.nat_c.id
-}
-
-################################
-# Association to Private Subnets
-################################
-
-resource "aws_route_table_association" "private_a" {
-  subnet_id      = aws_subnet.private_a.id
-  route_table_id = aws_route_table.private_a.id
-}
-
-resource "aws_route_table_association" "private_b" {
-  subnet_id      = aws_subnet.private_b.id
-  route_table_id = aws_route_table.private_b.id
-}
-
-resource "aws_route_table_association" "private_c" {
-  subnet_id      = aws_subnet.private_c.id
-  route_table_id = aws_route_table.private_c.id
-}
-
-################################
-# Association to Data Subnets
-################################
-
-resource "aws_route_table_association" "data_a" {
-  subnet_id      = aws_subnet.data_a.id
-  route_table_id = aws_route_table.private_a.id
-}
-
-resource "aws_route_table_association" "data_b" {
-  subnet_id      = aws_subnet.data_b.id
-  route_table_id = aws_route_table.private_b.id
-}
-
-resource "aws_route_table_association" "data_c" {
-  subnet_id      = aws_subnet.data_c.id
-  route_table_id = aws_route_table.private_c.id
+  depends_on = [aws_eip.nat]
 }

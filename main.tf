@@ -8,21 +8,15 @@ provider "aws" {
 }
 
 module "tfm_vpc" {
-  source            = "./modules/vpc"
-  profile = "pessoal"
-  vpc_cidr = "10.10.0.0/16"
+  source = "./modules/vpc"
 
-  public_a_cidr = "10.10.1.0/24"
-  public_b_cidr = "10.10.2.0/24"
-  public_c_cidr = "10.10.3.0/24"
+  cidr_block = "10.21.0.0/16"
+#  tags = local.environment.vpc.tags
 
- private_a_cidr = "10.10.4.0/24"
- private_b_cidr = "10.10.5.0/24"
- private_c_cidr = "10.10.6.0/24"
+  azs = ["us-east-1a","us-east-1b","us-east-1c"]
+  private_subnets = ["10.21.1.0/24","10.21.2.0/24","10.21.3.0/24"]
+  public_subnets = ["10.21.100.0/24","10.21.101.0/24","10.21.102.0/24"]
 
- data_a_cidr = "10.10.7.0/24"
- data_b_cidr = "10.10.8.0/24"
- data_c_cidr = "10.10.9.0/24"
 }
 
 module "tfm-aws-sg" {
@@ -37,7 +31,7 @@ module "ec2_bastion" {
   instance_type = "t2.micro"
   ec2_count = 1
   sg = [module.tfm-aws-sg.public_sg]
-  subnet_id = module.tfm_vpc.public_a.id
+  subnet_id = module.tfm_vpc.subnet_public[0].id
 #  user_data = abspath("./ec2_userData/bastion.txt")
 
 #  appKey = devops
