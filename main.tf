@@ -7,6 +7,21 @@ provider "aws" {
   profile = "pessoal"
 }
 
+################
+# Backend Config 
+################
+
+terraform {
+  backend "s3" {
+    bucket               = "mybucket-terraform-github"
+    key                  = "terraform.tfstate"
+    workspace_key_prefix = "state/hom"
+    region               = "us-east-1"
+    encrypt              = true
+    profile = "pessoal"
+  }
+}
+
 module "tfm_vpc" {
   source = "./modules/vpc"
 
@@ -24,15 +39,16 @@ module "tfm-aws-sg" {
   vpc_id = module.tfm_vpc.vpc_id
 }
 
-module "ec2_bastion" {
+module "ec2_instance" {
   source = "./modules/ec2"
   name = "bastion"
   ami = "ami-04d29b6f966df1537"
   instance_type = "t2.micro"
   ec2_count = 1
   sg = [module.tfm-aws-sg.public_sg]
-  subnet_id = module.tfm_vpc.subnet_public[0].id
+  subnet_id = module.tfm_vpc.subnet_public[0]
 #  user_data = abspath("./ec2_userData/bastion.txt")
 
 #  appKey = devops
 }
+
