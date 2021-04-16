@@ -3,11 +3,11 @@ output "vpc_id" {
 }
 
 output "subnet_private" {
-    value = aws_subnet.private
+    value = aws_subnet.private.*.id
 }
 
 output "subnet_public" {
-    value = aws_subnet.public
+    value = aws_subnet.public.*.id
 }
 
 #output "appKey" {
