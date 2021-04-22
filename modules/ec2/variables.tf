@@ -20,8 +20,8 @@ variable "instance_type" {
 }
 
 variable "subnet_id" {
-    type = string
-    default = null
+    type = list
+    default = []
 }
 
 variable "sg" {
@@ -29,7 +29,7 @@ variable "sg" {
     default = []
 }
 
-variable "ec2_count" {
+variable "instance_count" {
     type = number
     default = null
 }
@@ -38,3 +38,8 @@ variable "user_data" {
   type = string
   default = null
 }
+
+# variable "teste" {
+#     type = number
+#     default = null
+# }
