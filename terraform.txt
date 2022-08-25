@@ -1,0 +1,318 @@
+ 
+https://github.com/hashicorp/hcl
+→ explicação da linguagem do terraform
+-é uma ferramenta pra criação de infra por código.
+-ela cria, adapta e destrói.
+-ele não é uma ferramenta que gerencia configurações.
+-faz configurações em servidores em nuvem. 
+-infraestrutura em código com a extensão .tf
+-baixa o terraform,
+
+
+---------------------0) CONFIG INICIAL------------------------------------------------------------------------
+instalar o aws cli caso seu provedor seja a aws
+-> install python, em seguida pip, em seguida o aws-cli
+
+configura as credenciais
+$ aws configure --profile meuprofile
+
+AWS Access Key ID [None]: 
+AWS Secret Access Key [None]: 
+Default region name [None]: 
+Default output format [None]: json
+
+------------------------------------------------------WORKFLOW SIMPLES-----------------------------------------
+
+1-create configuration
+$ terraform init
+
+2-check the execution plan
+$ terraform plan 
+
+3-build the infrestucture
+$ terraform apply
+
+------------------------------------------------------WORKSPACE------------------------------------------------
+
+terraform workspace
+
+$ terraform workspace new [NAME]
+cria um novo workspace, para você usar o worksparce antes você precisa criar o nome
+
+$ terraform workspace show
+exibirá o espaço de trabalho atual
+
+$ terraform workspace list plan
+exibirá todos os espaços existentes
+
+$ terraform workspace select [NAME]
+selecionará o workspace
+
+---------------------------------------------------WORKFLOW COM PROFILE------------------------------------------
+
+1-create configuration
+
+selecionar workspace
+$ terraform workspace select hom
+1.2 iniciar com o backend
+$ terraform init -backend-config "profile=meuprofile"
+
+1.3 dentro das pastas que você tá até os filhos e formatar tudo certinho
+$ terraform fmt
+
+2-check the execution plan
+$ terraform plan -out tfplan -var "profile=meuprofile"
+
+3-build the infrestucture
+$ terraform apply tfplan
+
+4- destroy
+$ terraform destroy -var "profile=meuprofile"
+----------------------------------------------CONCEITOS TECNICOS--------------------------------------------------
+1) Providers
+- escolhemos qual plataforma escolheremos (gcloud,aws,azuere, ...)
+
+provider "aws" {
+  region  = "us-west-2"
+  access_key = "chave"
+  sercret_key = "chave"
+}
+
+melhor prática
+
+provider "aws" {
+  region  = "us-west-2"
+  profile = "meuprofile"
+}
+-> esse é o profile criado no .aws da home.
+
+2) Resource
+- desenvolve algum recurso dentro do provider escolhido.
+aws_instance -> é o recurso que irá criar na aws -> type
+web -> será o nome local do código, para que seja referenciado dentro do código, ele não dará nome dentro da aws. Web é o nome local no código -> local_name
+
+resource "aws_instance" "web" {
+  ami   = "id-ami"
+  instance_type = "t2.micro"
+}
+
+3) Variável
+- variável é um conceito de engenharia de software, serve para algo que se repete, caso queira mudar algo ele irá refletir para todo lugar que foi referenciado a variável.
+
+4) Módulo
+- é importante criar módulos, ele desta forma ele irá criar um bloco igual a variavel sem nem um type e isso servirá de template.
+
+5)dynamic block.
+dá uma estudada, mas a grosso modo usa como se fosse um for pra reduzir o tamanho do código.
+
+--------------------------------------------------EXPRESSIONS-----------------------------------------------------
+https://www.terraform.io/docs/language/expressions/types.html
+
+--------------------------------------------------REFERENCES------------------------------------------------------
+https://www.terraform.io/docs/language/expressions/references.html
+
+1)DATA
+data.<DATA TYPE>.<NAME>
+- ele filtra algo do provider e trás o valor para o data
+
+2) VARIABLES
+https://www.terraform.io/docs/language/values/variables.html
+var.<NAME>.<ATRIBUTO>
+tipos de argumento usados
+- type -> você pode passar um type, para que force a passarem as chaves com o yipo certo, como número, string ou lista
+- validation -> passa uma condição para que só seja usada a variável se ela seguir essas condições
+- default -> pode ser usado caso não passem um valor pra variável o valor que será pego é o default
+- description -> boa prática usar, é uma breve descrição da uncionalidade daquela variável.
+
+formas de passar variáveis
+2.1) por linha de comando
+terraform apply -var image_id="ami-1234567890"
+terraform apply -var-file="testing.tfvars"
+
+2.2) pode ser criado um arquivo de variáveis e usado na hora do apply
+terraform apply -var-file="testing.tfvars"
+
+2.3) se tiver um arquivo com o nome .auto.tfvars, ele usará automáticamente.
+terraform apply
+
+
+--------------------------------------------------CONSOLE---------------------------------------------------------
+- Serve para você interagir com o seu state, você pode trazer valores, isso ajuda em trooubleshooting. Para que você
+inserir em outros recursos.
+1.0)terraform console
+1.1) fazendo uma busca no console
+> data.recurso.nomerecurso
+1.1)Ctrl + c
+
+--------------------------------------------------PROVIDERS---------------------------------------------------------
+- É o rovider(cloud) que você vai usar pode ser AWS, GCP entere outras.
+dentro de um provider existem várias regiões e us-east-1 ou us-west-1, desta forma para usar multiplas regiões você
+teria que usar multiplos providers com alias.
+https://www.terraform.io/docs/language/providers/configuration.html
+
+
+--------------------------------------------------STATE-------------------------------------------------------------
+-onde ficam o estado do terraform, que mostra como está a infraestrutura na nuvem. É importante que esse estado fique 
+de forma remota. na AWS é comum salvar o estado em um backend remoto no S3.
+
+-comando para verificar os recursos de infraestrutura que temos na nuvem criado pelo terraform.
+$ terraform state list
+
+--------------------------------------------------DEPENDÊNCIAS------------------------------------------------------
+- para criar um recurso que tem depência explicita como o caso do elastic ip e a ec2 o terraform já cria
+uma dependência, porém se a dependência for implicita precisa passar um parâmetro de depends_on
+https://www.terraform.io/docs/language/meta-arguments/depends_on.html
+ depends_on = 
+
+--------------------------------------------------OPERADORES--------------------------------------------------------
+https://www.terraform.io/docs/language/expressions/operators.html
+
+
+--------------------------------------------------CONDIÇÕES---------------------------------------------------------
+- estrutura das condições
+condition ? true_val : false_val
+
+var.instance_count > 1 || var.use_num_suffix ? format("%s${var.num_suffix_format}", var.name, count.index + 1) : var.name
+explicação:
+var.instance_count > 1 || var.use_num_suffix -> se a expreção da esquerda ou da direita for True ele formata (format("%s${var.num_suffix_format}", var.name, count.index + 1)), caso as duas sejam falsas ele só coloca uma variável (var.name)
+|| -> é OU por isso essa estrutura.
+
+--------------------------------------------------TYPE CONSTRAINTS--------------------------------------------------
+https://www.terraform.io/docs/language/expressions/type-constraints.html
+- muito usado para tratar os tipos que são passados para o seu imput
+
+variable "instance_type" {
+    type = string
+    default = "teste"
+}
+
+variable "subnet_id" {
+    type = list
+    default = [1,2,3]
+}
+
+--------------------------------------------------FOR_EACH----------------------------------------------------------
+https://www.terraform.io/docs/language/meta-arguments/for_each.html
+é similar ao count, porém serve para ter um controle maior. Podemos passar um valor diferente pra cada iteração.
+
+resource "aws_iam_user" "the-accounts" {
+  for_each = toset( ["Todd", "James", "Alice", "Dottie"] )
+  name     = each.key
+}
+
+resource "azurerm_resource_group" "rg" {
+  for_each = {
+    a_group = "eastus"
+    another_group = "westus2"
+  }
+  name     = each.key
+  location = each.value
+}
+
+em cada iteração ele tem um valor diferente de name.
+Com variables
+
+
+--------------------------------------------------Bloco Dinâmico----------------------------------------------------
+- ele itera dentro do recurso
+
+  dynamic "ebs_block_device" {
+    for_each = var.blocks
+    content {
+      device_name = "/dev/sdg"
+      volume_size = 5
+      volume_type = "gp2"
+    }
+  }
+
+variable "blocks" {
+  default = {
+      device_name = "/dev/sdb"
+      volume_size = 10
+      volume_type = "gp2"]
+  },
+  {
+      device_name = "/dev/sdh"
+      volume_size = 20
+      volume_type = "gp2"]
+  }
+}
+
+--------------------------------------------------String Template---------------------------------------------------
+
+--------------------------------------------------INTERPOLAÇÃO------------------------------------------------------
+1) ele faz uma interpolação com o nome.
+
+  tags = {
+    Name = "terraform ${var.name}"
+  }
+}
+
+"Hello, %{ if var.name != "neto" }${var.name}%{ else }não é o neto%{ endif }!"
+
+
+--------------------------------------------------VARIÁVEIS-------------------------------------------------------
+aula 06-variáveis
+1) passando variável de forma dinâmica no terraform.
+$ terraplan -var 'type=t2.micro'
+
+2) passando variáveis a partir de arquivos
+$ terraform plan -var-file="dev.tfvars"
+ou como pro
+$ terraform plan -var-file="prod.tfvars"
+
+3) ou criando um arquivos com variables.tf
+variable "region" {
+  default = "us-east-1"
+}
+
+3.1 e usando interpolação no outro arquivo para associar a variável
+provider "aws" {
+  region = "${var.region}"
+}
+
+-------------------------------------------------OUTPUT--------------------------------------------------------------
+1) podemos dar o output dos atributos de algum recurso como o id o arn ou o end point da seguinte forma
+
+output "redis_cluster_nodes" {
+  value = "${aws_elasticache_replication_group.redis_nodes.configuration_endpoint_address}"
+}
+
+-------------------------------------------------BACKEND--------------------------------------------------------------
+serve para salvar o .state em um lugar remoto
+1) salvará em uma pasta na bucket: platform/data-storage/redis-cluster_tmp
+2) com o seguinte nome: terraform.tfstate
+
+terraform {
+  backend "s3" {
+    bucket               = "tf-state-store-platform-138272065686"
+    key                  = "terraform.tfstate"
+    workspace_key_prefix = "platform/data-storage/redis-cluster_tmp"
+    region               = "us-east-1"
+    encrypt              = true
+    dynamodb_table       = "tf-state-lock-platform"
+  }
+}
+
+-------------------------------------------------DATA--------------------------------------------------------------
+serve para pegar recursos que já estão na aws criado em outra hora pelo terraform ou não
+
+variable "subnet_id" {}
+
+data "aws_subnet" "selected" {
+  id = "${var.subnet_id}"
+}
+
+resource "aws_security_group" "subnet" {
+  vpc_id = "${data.aws_subnet.selected.vpc_id}"
+
+  ingress {
+    cidr_blocks = ["${data.aws_subnet.selected.cidr_block}"]
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+  }
+}
+
+
+---------------------------------------------------------------------------------------------------------------------
