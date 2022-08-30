@@ -4,7 +4,7 @@
 
 provider "aws" {
   region  = "us-east-1"
-  profile = "pessoal"
+  profile = "qa"
 }
 
 ################
@@ -13,12 +13,12 @@ provider "aws" {
 
 terraform {
   backend "s3" {
-    bucket               = "mybucket-terraform-github"
+    bucket               = "state-terragrunt-humberto-dev"
     key                  = "terraform.tfstate"
     workspace_key_prefix = "state/hom"
     region               = "us-east-1"
     encrypt              = true
-    profile              = "pessoal"
+    profile              = "qa"
   }
 }
 
