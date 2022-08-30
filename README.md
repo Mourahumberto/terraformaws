@@ -244,3 +244,8 @@ terraform apply -var-file=”prod.tfvars”
 - é importante usar várias ferramentas de teste para uma melhor cobertura de código.
 - para testes estáticos no terraform (terraform validate e ferramentas como tflint, config-lint, Checkov, Terrascan, tfsec, Deepsource.)
 - Para testes de integração(Terratest, Kitchen-Terraform, InSpec)
+
+
+# Projetos
+
+1- Projeto com estrutura simples.
