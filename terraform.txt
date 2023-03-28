@@ -9,7 +9,7 @@ https://github.com/hashicorp/hcl
 -baixa o terraform,
 
 
----------------------0) CONFIG INICIAL------------------------------------------------------------------------
+--------------------- CONFIG INICIAL------------------------------------------------------------------------
 instalar o aws cli caso seu provedor seja a aws
 -> install python, em seguida pip, em seguida o aws-cli
 
@@ -315,4 +315,8 @@ resource "aws_security_group" "subnet" {
 }
 
 
----------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------MOVE-------------------------------------------------------------------
+- caso você queira mudar o nome de um recurso do terraform basta usar o seguinte comando.
+$ terraform state mv resource.old_resource_name resource.new_resource_name
+
+- caso precise mudar o state local para o remoto, basta configurar o backend da um init, que será perguntado se quer mover para o backend remoto, da yes e seja feliz.
